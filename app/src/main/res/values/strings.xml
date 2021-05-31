@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">GeoFencing</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="Latitude">Latitude</string>
+    <string name="Longitude">Longitude</string>
+    <string name="Radius">Radius</string>
+    <string name="Start">Start</string>
+
+</resources>
