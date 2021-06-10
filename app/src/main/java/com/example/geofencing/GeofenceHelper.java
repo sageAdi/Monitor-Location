@@ -31,7 +31,7 @@ public class GeofenceHelper extends ContextWrapper {
                 .setCircularRegion(latLng.latitude,latLng.longitude,radius)
                 .setRequestId(ID)
                 .setTransitionTypes(transitionType)
-                .setLoiteringDelay(0)
+                .setLoiteringDelay(1)
                 .setExpirationDuration(Geofence.NEVER_EXPIRE)
                 .build();
     }
@@ -54,7 +54,7 @@ public class GeofenceHelper extends ContextWrapper {
                         .GEOFENCE_NOT_AVAILABLE:
                     return "GEOFENCE_NOT_AVAILABLE";
                 case GeofenceStatusCodes.GEOFENCE_TOO_MANY_GEOFENCES:
-                    return "GEOFENCE_TOO_MANY_GEOFENCES";
+                    return "GEOFENCE_TOO_MANY_GEOFENCE";
                 case GeofenceStatusCodes.GEOFENCE_TOO_MANY_PENDING_INTENTS:
                     return "GEOFENCE_TOO_MANY_PENDING_INTENTS";
             }

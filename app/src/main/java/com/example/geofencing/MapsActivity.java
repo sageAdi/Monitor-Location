@@ -4,7 +4,6 @@ import android.Manifest;
 import android.app.PendingIntent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
@@ -26,7 +25,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
@@ -34,11 +32,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private static final String TAG = "MapsActivity";
     private final int FINE_LOCATION_ACCESS_REQUEST_CODE = 1001;
+    private final int REQUEST_PERMISSION_ACCESS_BACKGROUND_LOCATION = 99;
+
     private GoogleMap mMap;
     private GeofenceHelper geofenceHelper;
     private ActivityMapsBinding binding;
-    private Double latitude =26.6940, longitude=83.4826;
-    private float radius;
+    //private Double latitude = 26.6940, longitude = 83.4826;
+    private Double latitude = 22.532682, longitude = 70.052806;
+    private float radius = 300;
     private GeofencingClient geofencingClient;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private String GEOFENCE_ID = "GEOFENCE_ID";
@@ -56,45 +57,34 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
 
         Bundle bundle = getIntent().getExtras();
+        // TODO: Uncomment this before final push
         /*latitude = Double.parseDouble(bundle.getString("latitude").trim());
-        longitude = Double.parseDouble(bundle.getString("longitude").trim());*/
-        radius = Float.parseFloat(bundle.getString("radius").trim());
+        longitude = Double.parseDouble(bundle.getString("longitude").trim());
+        radius = Float.parseFloat(bundle.getString("radius").trim());*/
 
         geofencingClient = LocationServices.getGeofencingClient(this);
         geofenceHelper = new GeofenceHelper(this);
     }
 
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Add a marker in Sydney and move the camera
-        /*LatLng sydney = new LatLng(latitude, longitude);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));*/
+        enableForegroundLocation();
+        handleGeofence();
+    }
 
-        enableUserLocation();
+    private void handleGeofence() {
         LatLng latLng = new LatLng(latitude, longitude);
-        mMap.addMarker(new MarkerOptions().position(latLng).title("Marker in Geofence"));
         CircleOptions circleOptions = new CircleOptions();
         circleOptions.center(latLng);
         circleOptions.radius(radius);
-        circleOptions.strokeColor(Color.argb(255,255,0,0));
-        circleOptions.fillColor(Color.argb(64,255,0,0));
+        circleOptions.strokeColor(Color.argb(255, 255, 0, 0));
+        circleOptions.fillColor(Color.argb(64, 255, 0, 0));
         circleOptions.strokeWidth(4);
         mMap.addCircle(circleOptions);
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
         addGeofence(latLng, radius);
-
     }
 
     public void addGeofence(LatLng latLng, float radius) {
@@ -104,9 +94,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         | Geofence.GEOFENCE_TRANSITION_EXIT);
         GeofencingRequest geofencingRequest = geofenceHelper.getGeofencingRequest(geofence);
         PendingIntent pendingIntent = geofenceHelper.getPendingIntent();
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     FINE_LOCATION_ACCESS_REQUEST_CODE);
@@ -115,8 +104,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void unused) {
-                        Toast.makeText(geofenceHelper, "Geofence Added", Toast.LENGTH_SHORT).show();
-                        Log.d(TAG, "onSuccess: Geofence Added...");
+                        Toast.makeText(geofenceHelper, "Geofence Added Successfully",
+                                Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "onSuccess: Geofence Added");
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -128,53 +118,49 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 });
     }
 
-    private void enableUserLocation() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            mMap.setMyLocationEnabled(true);
-            // Getting live location
-            fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-            fusedLocationProviderClient.getLastLocation().addOnSuccessListener(this,
-                    new OnSuccessListener<Location>() {
-                        @Override
-                        public void onSuccess(Location location) {
-                            if (location != null) {
-
-                            }
-                        }
-                    });
-        } else {
-            // Ask for Permission
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    FINE_LOCATION_ACCESS_REQUEST_CODE);
-        }
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull
             int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == FINE_LOCATION_ACCESS_REQUEST_CODE) {
+            Log.d(TAG, "onRequestPermissionsResult: ACCESS_FINE_LOCATION");
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // We have the permission
-                if (ActivityCompat.checkSelfPermission(this,
-                        Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                        && ActivityCompat.checkSelfPermission(this,
-                        Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    // TODO: Consider calling
-                    //    ActivityCompat#requestPermissions
-                    // here to request the missing permissions, and then overriding
-                    //   public void onRequestPermissionsResult(int requestCode, String[]
-                    //   permissions,
-                    //                                          int[] grantResults)
-                    // to handle the case where the user grants the permission. See the
-                    // documentation
-                    // for ActivityCompat#requestPermissions for more details.
-                    return;
-                }
-                mMap.setMyLocationEnabled(true);
+                Log.d(TAG, "onRequestPermissionsResult: Permission granted");
+            } else {
+                Log.d(TAG, "onRequestPermissionsResult: Permission not granted");
             }
+        }
+        if (requestCode == REQUEST_PERMISSION_ACCESS_BACKGROUND_LOCATION) {
+            Log.d(TAG, "onRequestPermissionsResult: ACCESS_BACKGROUND_LOCATION");
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // We have the permission
+                Log.d(TAG, "onRequestPermissionsResult: Permission granted");
+            } else {
+                Log.d(TAG, "onRequestPermissionsResult: Permission not granted");
+            }
+        }
+    }
+
+    private void enableForegroundLocation() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            mMap.setMyLocationEnabled(true);
+
+        }
+         else {
+            // Ask for Permission
+            if (!ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION)) {
+            } else {
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                FINE_LOCATION_ACCESS_REQUEST_CODE);
+    }
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    FINE_LOCATION_ACCESS_REQUEST_CODE);
+            //mMap.setMyLocationEnabled(true);
         }
     }
 }

@@ -1,64 +1,134 @@
 package com.example.geofencing;
 
-import androidx.appcompat.app.AppCompatActivity;
-
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 
-import com.google.android.material.textfield.TextInputLayout;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
+import com.google.android.material.textfield.TextInputEditText;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    Button startBtn;
-    TextInputLayout latitude,longitude,radius;
+    private static final String TAG = "MainActivity";
+    private final int PERMISSION_REQUEST_CODE = 100;
+    private Button startBtn;
+    private TextInputEditText latitudeText, longitudeText, radiusText;
+    private String latitudeString, longitudeString, radiusString;
+    public TextWatcher textWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            latitudeString = latitudeText.getText().toString().trim();
+            longitudeString = longitudeText.getText().toString().trim();
+            radiusString = radiusText.getText().toString().trim();
+            /*startBtn.setEnabled(!latitudeString.isEmpty()
+                    && !longitudeString.isEmpty()
+                    && !radiusString.isEmpty()
+            );*/
+            startBtn.setEnabled((!radiusString.isEmpty()));
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+
+        }
+    };
+    private ArrayList<String> permissions = new ArrayList<String>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         startBtn = findViewById(R.id.startBtn);
-        latitude = findViewById(R.id.Latitude);
-        longitude = findViewById(R.id.Longitude);
-        radius = findViewById(R.id.Radius);
 
+        latitudeText = findViewById(R.id.latitudeText);
+        longitudeText = findViewById(R.id.longitudeText);
+        radiusText = findViewById(R.id.radiusText);
+
+        latitudeText.addTextChangedListener(textWatcher);
+        longitudeText.addTextChangedListener(textWatcher);
+        radiusText.addTextChangedListener(textWatcher);
+
+        latitudeString = latitudeText.getText().toString().trim();
+        longitudeString = longitudeText.getText().toString().trim();
+        radiusString = radiusText.getText().toString().trim();
+
+        checkingPermission();
+        //mapActivity();
         startBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(latitude.getEditText().getText().toString().length()>0
-                        && longitude.getEditText().getText().toString().length()>0
-                        && radius.getEditText().getText().toString().length()>0)
-                {
-                    mapActivity();
-                }
-                else{
-                    if(latitude.getEditText().getText().toString().length()==0){
-                        latitude.requestFocus();
-                        latitude.setError("It should not be empty!!!");
-                    }
-                    if(longitude.getEditText().getText().toString().length()==0){
-                        longitude.requestFocus();
-                        longitude.setError("It should not be empty!!!");
-                    }
-                    if(radius.getEditText().getText().toString().length()==0){
-                        radius.requestFocus();
-                        radius.setError("It should not be empty!!!");
-                    }
-                }
+
+                mapActivity();
+                //cameraActivity();
+                //cameraService();
             }
         });
 
     }
-    public void mapActivity(){
-        Intent intent = new Intent(this,MapsActivity.class);
+
+
+    private void checkingPermission() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
+        }
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            permissions.add(Manifest.permission.CAMERA);
+        }
+        if (!permissions.isEmpty()) {
+            String[] per = permissions.toArray(new String[permissions.size()]);
+            ActivityCompat.requestPermissions(MainActivity.this,
+                    per,
+                    PERMISSION_REQUEST_CODE);
+
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull @NotNull String[] permissions,
+                                           @NonNull @NotNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE && grantResults.length > 0) {
+            Log.d(TAG, "onRequestPermissionsResult: " + permissions[0]);
+        }
+    }
+
+    private void cameraService() {
+        startService(new Intent(this, CameraService.class));
+    }
+
+    public void mapActivity() {
+        Intent intent = new Intent(this, MapsActivity.class);
         Bundle bundle = new Bundle();
-        bundle.putString("latitude",latitude.getEditText().getText().toString());
-        bundle.putString("longitude",longitude.getEditText().getText().toString());
-        bundle.putString("radius",radius.getEditText().getText().toString());
+        bundle.putString("latitude", latitudeString);
+        bundle.putString("longitude", longitudeString);
+        bundle.putString("radius", radiusString);
         intent.putExtras(bundle);
         startActivity(intent);
     }
+
+    public void cameraActivity() {
+        Intent intent = new Intent(this, Camera2.class);
+        startActivity(intent);
+    }
+
 }
