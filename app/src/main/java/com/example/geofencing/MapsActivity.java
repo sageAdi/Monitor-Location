@@ -73,7 +73,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        Bundle bundle = getIntent().getExtras();
+        //Bundle bundle = getIntent().getExtras();
         // TODO: Uncomment this before final push
         /*latitude = Double.parseDouble(bundle.getString("latitude").trim());
         longitude = Double.parseDouble(bundle.getString("longitude").trim());

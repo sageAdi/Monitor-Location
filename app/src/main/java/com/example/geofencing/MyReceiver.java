@@ -36,7 +36,6 @@ public class MyReceiver extends BroadcastReceiver {
             case Geofence.GEOFENCE_TRANSITION_ENTER:
                 context.startService(new Intent(context,CameraService.class));
                 Toast.makeText(context, "GEOFENCE_TRANSITION_ENTER", Toast.LENGTH_SHORT).show();
-                blockTheCall();
                 break;
             case Geofence.GEOFENCE_TRANSITION_DWELL:
                 context.startService(new Intent(context,CameraService.class));
@@ -49,13 +48,5 @@ public class MyReceiver extends BroadcastReceiver {
         }
     }
 
-    private void blockTheCall() {
-        try{
 
-            Runtime.getRuntime().exec(new String[]{"su","-c","input keyevent 6"});
-        }
-        catch(Exception e){
-            e.printStackTrace();
-        }
-    }
 }
