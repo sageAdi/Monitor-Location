@@ -2,13 +2,28 @@ package com.example.geofencing;
 
 import android.Manifest;
 import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.PixelFormat;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
@@ -39,10 +54,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private ActivityMapsBinding binding;
     //private Double latitude = 26.6940, longitude = 83.4826;
     private Double latitude = 22.532682, longitude = 70.052806;
-    private float radius = 300;
+    private float radius = 500;
     private GeofencingClient geofencingClient;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private String GEOFENCE_ID = "GEOFENCE_ID";
+
+    public final static int REQUEST_CODE = 300;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,9 +86,65 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
         enableForegroundLocation();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Log.v("App", "Build Version Greater than or equal to M: " + Build.VERSION_CODES.M);
+            checkDrawOverlayPermission();
+        }
         handleGeofence();
+    }
+    private void overlayLayout() {
+        try {
+            Log.v("App", "Disable Pull Notification");
+
+            int statusBarHeight = (int) Math.ceil(25 * getResources().getDisplayMetrics().density);
+            Log.v("App", "" + statusBarHeight);
+
+            WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.TYPE_APPLICATION,
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
+                            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN, //Disables status bar
+                    PixelFormat.TRANSPARENT); //Transparent
+
+            params.gravity = Gravity.CENTER | Gravity.TOP;
+            WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
+            ViewGroup viewGroup = (ViewGroup) getLayoutInflater().inflate(R.layout.overlay_screen,null);
+            wm.addView(viewGroup, params);
+            Button btn = findViewById(R.id.exitBtn);
+            btn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    wm.removeViewImmediate(viewGroup);
+                }
+            });
+
+
+        } catch (Exception e) {
+            Log.v("App", "Exception: " + e.getMessage());
+
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public void checkDrawOverlayPermission() {
+        Log.v("App", "Package Name: " + getApplicationContext().getPackageName());
+
+        // Check if we already  have permission to draw over other apps
+        if (!Settings.canDrawOverlays(this)) {
+            Log.v("App", "Requesting Permission" + Settings.canDrawOverlays(this));
+            // if not construct intent to request permission
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + getApplicationContext().getPackageName()));
+            // request permission via start activity for result
+            startActivityForResult(intent, REQUEST_CODE); //It will call onActivityResult Function After you press Yes/No and go Back after giving permission
+        } else {
+            Log.v("App", "We already have permission for it.");
+            overlayLayout();
+            // disablePullNotificationTouch();
+            // Do your stuff, we got permission captain
+        }
     }
 
     private void handleGeofence() {
