@@ -1,6 +1,7 @@
 package com.example.geofencing;
 
 import android.Manifest;
+import android.app.ActivityManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -9,7 +10,9 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
+import androidx.annotation.LongDef;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -18,7 +21,10 @@ import com.google.android.material.textfield.TextInputEditText;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -82,6 +88,40 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        Log.d(TAG, "onCreate: inside");
+        ActivityManager activityManager = (ActivityManager) this.getSystemService(ACTIVITY_SERVICE);
+        List<ActivityManager.RunningAppProcessInfo> runningAppProcessInfoList =
+                activityManager.getRunningAppProcesses();
+        for(int i=0;i<runningAppProcessInfoList.size();i++){
+            Log.d(TAG, "Running App: "+runningAppProcessInfoList.size()+runningAppProcessInfoList.get(i).processName);
+        }
+        try
+        {
+            Process mLogcatProc = null;
+            BufferedReader reader = null;
+            mLogcatProc = Runtime.getRuntime().exec(new String[]{"logcat", "-d"});
+
+            reader = new BufferedReader(new InputStreamReader(mLogcatProc.getInputStream()));
+
+            String line;
+            final StringBuilder log = new StringBuilder();
+            String separator = System.getProperty("line.separator");
+
+            while ((line = reader.readLine()) != null)
+            {
+                log.append(line);
+                log.append(separator);
+            }
+            String w = log.toString();
+            Log.d(TAG, "App running: "+w);
+            Toast.makeText(getApplicationContext(),w, Toast.LENGTH_LONG).show();
+        }
+        catch (Exception e)
+        {
+            Log.d(TAG, "Error: "+e.getMessage());
+            Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+
     }
 
 
@@ -123,11 +163,6 @@ public class MainActivity extends AppCompatActivity {
         bundle.putString("longitude", longitudeString);
         bundle.putString("radius", radiusString);
         intent.putExtras(bundle);
-        startActivity(intent);
-    }
-
-    public void cameraActivity() {
-        Intent intent = new Intent(this, Camera2.class);
         startActivity(intent);
     }
 
