@@ -60,42 +60,42 @@ public class CameraService extends Service {
     protected ImageReader imageReader;
     protected ImageReader.OnImageAvailableListener onImageAvailableListener =
             new ImageReader.OnImageAvailableListener() {
-        @Override
-        public void onImageAvailable(ImageReader reader) {
-            Log.d(TAG, "onImageAvailable");
-            Image img = reader.acquireLatestImage();
-            if (img != null) {
-                if (System.currentTimeMillis() > cameraCaptureStartTime + CAMERA_CALIBRATION_DELAY) {
-                    processImage(img);
+                @Override
+                public void onImageAvailable(ImageReader reader) {
+                    Log.d(TAG, "onImageAvailable");
+                    Image img = reader.acquireLatestImage();
+                    if (img != null) {
+                        if (System.currentTimeMillis() > cameraCaptureStartTime + CAMERA_CALIBRATION_DELAY) {
+                            processImage(img);
+                        }
+                        img.close();
+                    }
                 }
-                img.close();
-            }
-        }
-    };
-    private CameraCaptureSession.StateCallback sessionStateCallback =
+            };
+    private final CameraCaptureSession.StateCallback sessionStateCallback =
             new CameraCaptureSession.StateCallback() {
 
-        @Override
-        public void onReady(@NonNull CameraCaptureSession session) {
-            CameraService.this.session = session;
-            try {
-                session.setRepeatingRequest(createCaptureRequest(), null, null);
-                cameraCaptureStartTime = System.currentTimeMillis();
-            } catch (CameraAccessException e) {
-                Log.e(TAG, e.getMessage());
-            }
-        }
+                @Override
+                public void onReady(@NonNull CameraCaptureSession session) {
+                    CameraService.this.session = session;
+                    try {
+                        session.setRepeatingRequest(createCaptureRequest(), null, null);
+                        cameraCaptureStartTime = System.currentTimeMillis();
+                    } catch (CameraAccessException e) {
+                        Log.e(TAG, e.getMessage());
+                    }
+                }
 
-        @Override
-        public void onConfigured(@NonNull CameraCaptureSession session) {
+                @Override
+                public void onConfigured(@NonNull CameraCaptureSession session) {
 
-        }
+                }
 
-        @Override
-        public void onConfigureFailed(@NonNull CameraCaptureSession session) {
+                @Override
+                public void onConfigureFailed(@NonNull CameraCaptureSession session) {
 
-        }
-    };
+                }
+            };
     private String cameraId;
     private final int CAMERA_REQUEST_CODE = 100;
     private Size imageDimension;

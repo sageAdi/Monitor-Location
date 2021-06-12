@@ -2,12 +2,11 @@ package com.example.geofencing;
 
 import android.Manifest;
 import android.app.ActivityManager;
+import android.app.PendingIntent;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -16,15 +15,12 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import androidx.annotation.LongDef;
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import com.example.geofencing.backend.utils.ApplicationFetcher;
 import com.example.geofencing.userinterface.ApplicationListAdapter;
-import com.google.android.material.textfield.TextInputEditText;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -32,8 +28,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.example.geofencing.MapsActivity.REQUEST_CODE;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -63,9 +57,9 @@ public class MainActivity extends AppCompatActivity {
 
         }
     };
-    private ArrayList<String> permissions = new ArrayList<String>();
+    private final ArrayList<String> permissions = new ArrayList<String>();
 
-//    @RequiresApi(api = Build.VERSION_CODES.M)
+    //    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -101,16 +95,24 @@ public class MainActivity extends AppCompatActivity {
                 //cameraService();
             }
         });
+        PendingIntent pendingIntent;
+        //Intent intent = new Intent(this, MyReceiver2.class);
+        MyReceiver2 br = new MyReceiver2();
+
+        MainActivity.this.registerReceiver(br,
+                new IntentFilter(Intent.ACTION_AIRPLANE_MODE_CHANGED));
+        //sendBroadcast(intent);
+
 
         Log.d(TAG, "onCreate: inside");
         ActivityManager activityManager = (ActivityManager) this.getSystemService(ACTIVITY_SERVICE);
         List<ActivityManager.RunningAppProcessInfo> runningAppProcessInfoList =
                 activityManager.getRunningAppProcesses();
-        for(int i=0;i<runningAppProcessInfoList.size();i++){
-            Log.d(TAG, "Running App: "+runningAppProcessInfoList.size()+runningAppProcessInfoList.get(i).processName);
+        for (int i = 0; i < runningAppProcessInfoList.size(); i++) {
+            Log.d(TAG,
+                    "Running App: " + runningAppProcessInfoList.size() + runningAppProcessInfoList.get(i).processName);
         }
-        try
-        {
+        try {
             Process mLogcatProc = null;
             BufferedReader reader = null;
             mLogcatProc = Runtime.getRuntime().exec(new String[]{"logcat", "-d"});
@@ -121,18 +123,15 @@ public class MainActivity extends AppCompatActivity {
             final StringBuilder log = new StringBuilder();
             String separator = System.getProperty("line.separator");
 
-            while ((line = reader.readLine()) != null)
-            {
+            while ((line = reader.readLine()) != null) {
                 log.append(line);
                 log.append(separator);
             }
             String w = log.toString();
-            Log.d(TAG, "App running: "+w);
-            Toast.makeText(getApplicationContext(),w, Toast.LENGTH_LONG).show();
-        }
-        catch (Exception e)
-        {
-            Log.d(TAG, "Error: "+e.getMessage());
+            Log.d(TAG, "App running: " + w);
+            Toast.makeText(getApplicationContext(), w, Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Log.d(TAG, "Error: " + e.getMessage());
             Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
         }
 
@@ -172,9 +171,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void mapActivity() {
         Intent intent = new Intent(this, MapsActivity.class);
-        Bundle bundle = new Bundle();
-
-        intent.putExtras(bundle);
         startActivity(intent);
 //        Intent svc = new Intent(this, OverlayShowingService.class);
 //        startService(svc);
@@ -191,7 +187,8 @@ public class MainActivity extends AppCompatActivity {
 //            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
 //                    Uri.parse("package:" + getApplicationContext().getPackageName()));
 //            // request permission via start activity for result
-//            startActivityForResult(intent, REQUEST_CODE); //It will call onActivityResult Function After you press Yes/No and go Back after giving permission
+//            startActivityForResult(intent, REQUEST_CODE); //It will call onActivityResult
+//            Function After you press Yes/No and go Back after giving permission
 //        } else {
 //            Log.v("App", "We already have permission for it.");
 //            //overlayLayout();

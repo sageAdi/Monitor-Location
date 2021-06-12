@@ -11,16 +11,21 @@ import com.example.geofencing.R
 import com.example.geofencing.backend.ApplicationInfoWrapper
 
 class ApplicationListAdapter : ArrayAdapter<ApplicationInfoWrapper> {
-    public constructor(context: Context, list: List<ApplicationInfoWrapper>) : super(context,0,list)
+    constructor(context: Context, list: List<ApplicationInfoWrapper>) : super(
+        context,
+        0,
+        list
+    )
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
 
         // Accessing the layout inflator from the given context
-        val layoutInflater = super.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val layoutInflater =
+            super.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
 
         // Checking whehter the layout inflator is accessed or not
-        if(layoutInflater == null)
-            return convertView!!;
+        if (layoutInflater == null)
+            return convertView!!
 
         // inflating and applying the layout in the given view
         val view = layoutInflater.inflate(R.layout.list_layout, parent, false)
@@ -47,6 +52,6 @@ class ApplicationListAdapter : ArrayAdapter<ApplicationInfoWrapper> {
     }
 
     companion object {
-        public val WRAPPER_TAG_KEY = "WRAPPER_TAG".hashCode()
+        val WRAPPER_TAG_KEY = "WRAPPER_TAG".hashCode()
     }
 }

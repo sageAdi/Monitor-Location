@@ -28,7 +28,7 @@ public class GeofenceHelper extends ContextWrapper {
 
     public Geofence getGeofence(String ID, LatLng latLng, float radius, int transitionType) {
         return new Geofence.Builder()
-                .setCircularRegion(latLng.latitude,latLng.longitude,radius)
+                .setCircularRegion(latLng.latitude, latLng.longitude, radius)
                 .setRequestId(ID)
                 .setTransitionTypes(transitionType)
                 .setLoiteringDelay(1)
@@ -46,10 +46,10 @@ public class GeofenceHelper extends ContextWrapper {
         return pendingIntent;
     }
 
-    public String getErrorMessage(Exception e){
-        if (e instanceof ApiException){
-            ApiException apiException = (ApiException)e;
-            switch (apiException.getStatusCode()){
+    public String getErrorMessage(Exception e) {
+        if (e instanceof ApiException) {
+            ApiException apiException = (ApiException) e;
+            switch (apiException.getStatusCode()) {
                 case GeofenceStatusCodes
                         .GEOFENCE_NOT_AVAILABLE:
                     return "GEOFENCE_NOT_AVAILABLE";

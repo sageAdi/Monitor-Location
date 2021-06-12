@@ -2,12 +2,9 @@ package com.example.geofencing;
 
 import android.Manifest;
 import android.app.PendingIntent;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.net.Uri;
 import android.os.Build;
@@ -15,11 +12,8 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.MotionEvent;
-import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -52,14 +46,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private GeofenceHelper geofenceHelper;
     private ActivityMapsBinding binding;
-    //private Double latitude = 26.6940, longitude = 83.4826;
-    private Double latitude = 22.532682, longitude = 70.052806;
-    private float radius = 500;
+    private final Double latitude = 26.6940;
+    private final Double longitude = 83.4826;
+    //private Double latitude = 22.532682, longitude = 70.052806;
+    private final float radius = 500;
     private GeofencingClient geofencingClient;
     private FusedLocationProviderClient fusedLocationProviderClient;
-    private String GEOFENCE_ID = "GEOFENCE_ID";
+    private final String GEOFENCE_ID = "GEOFENCE_ID";
 
     public final static int REQUEST_CODE = 300;
+
+    private String airplaneMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,7 +70,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        //Bundle bundle = getIntent().getExtras();
+        Bundle bundle = getIntent().getExtras();
+        airplaneMode = bundle.getString("airplaneMode");
         // TODO: Uncomment this before final push
         /*latitude = Double.parseDouble(bundle.getString("latitude").trim());
         longitude = Double.parseDouble(bundle.getString("longitude").trim());
@@ -93,6 +91,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         handleGeofence();
     }
+
     private void overlayLayout() {
         try {
             Log.v("App", "Disable Pull Notification");
@@ -103,22 +102,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                     WindowManager.LayoutParams.MATCH_PARENT,
                     WindowManager.LayoutParams.MATCH_PARENT,
-                    WindowManager.LayoutParams.TYPE_APPLICATION,
+                    WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
                     WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
                             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN, //Disables status bar
                     PixelFormat.TRANSPARENT); //Transparent
 
             params.gravity = Gravity.CENTER | Gravity.TOP;
             WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
-            ViewGroup viewGroup = (ViewGroup) getLayoutInflater().inflate(R.layout.overlay_screen,null);
-            wm.addView(viewGroup, params);
-            Button btn = findViewById(R.id.exitBtn);
-            btn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    wm.removeViewImmediate(viewGroup);
-                }
-            });
+            ViewGroup viewGroup = (ViewGroup) getLayoutInflater().inflate(R.layout.overlay_screen
+                    , null);
+            Log.d(TAG, "overlayLayout: " + airplaneMode);
+            if (airplaneMode == "false")
+                wm.addView(viewGroup, params);
+            else
+                wm.removeViewImmediate(viewGroup);
 
 
         } catch (Exception e) {
@@ -138,7 +135,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                     Uri.parse("package:" + getApplicationContext().getPackageName()));
             // request permission via start activity for result
-            startActivityForResult(intent, REQUEST_CODE); //It will call onActivityResult Function After you press Yes/No and go Back after giving permission
+            startActivityForResult(intent, REQUEST_CODE); //It will call onActivityResult
+            // Function After you press Yes/No and go Back after giving permission
         } else {
             Log.v("App", "We already have permission for it.");
             overlayLayout();
@@ -220,16 +218,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 == PackageManager.PERMISSION_GRANTED) {
             mMap.setMyLocationEnabled(true);
 
-        }
-         else {
+        } else {
             // Ask for Permission
             if (!ActivityCompat.shouldShowRequestPermissionRationale(this,
                     Manifest.permission.ACCESS_FINE_LOCATION)) {
             } else {
-        ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                FINE_LOCATION_ACCESS_REQUEST_CODE);
-    }
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        FINE_LOCATION_ACCESS_REQUEST_CODE);
+            }
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     FINE_LOCATION_ACCESS_REQUEST_CODE);

@@ -14,7 +14,7 @@ class ApplicationFetcher {
      ******************************************************************************************************************/
     companion object {
 
-        private const val HOUR_RANGE : Int = 1000 * 3600 * 24
+        private const val HOUR_RANGE: Int = 1000 * 3600 * 24
 
         /**
          * @param context The current context of the application.
@@ -24,20 +24,26 @@ class ApplicationFetcher {
          * current context.It also excludes the pre-installed System-Applications by checking the flag of the
          * particular ApplicationInfo.
          */
-        public fun getInstalledApplications(context: Context) : List<ApplicationInfoWrapper> {
+        fun getInstalledApplications(context: Context): List<ApplicationInfoWrapper> {
             val packageManager = context.packageManager
-            if(packageManager == null)
+            if (packageManager == null)
                 return Collections.emptyList<ApplicationInfoWrapper>()
             // Querying the PackageManager to get all the InstalledApplications by passing 0 flags
             val applications = packageManager.getInstalledApplications(0)
-            if(applications == null)
+            if (applications == null)
                 return Collections.emptyList<ApplicationInfoWrapper>()
             val installedApplications = ArrayList<ApplicationInfoWrapper>()
-            for(applicationInfo in applications) {
-                if(!isSystemApplication(applicationInfo)) {
-                    val applicationName = packageManager.getApplicationLabel(applicationInfo).toString()
+            for (applicationInfo in applications) {
+                if (!isSystemApplication(applicationInfo)) {
+                    val applicationName =
+                        packageManager.getApplicationLabel(applicationInfo).toString()
                     val applicationIcon = packageManager.getApplicationIcon(applicationInfo)
-                    installedApplications.add(ApplicationInfoWrapper(applicationName,applicationIcon))
+                    installedApplications.add(
+                        ApplicationInfoWrapper(
+                            applicationName,
+                            applicationIcon
+                        )
+                    )
                 }
             }
             return installedApplications
@@ -51,22 +57,32 @@ class ApplicationFetcher {
          * This method is used to return the current active application on the given context by using the Usage Stats
          * Manager.
          */
-        public fun getForegroundApplication(context: Context) : String? {
-            val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+        fun getForegroundApplication(context: Context): String? {
+            val usageStatsManager =
+                context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
             val currentTime = System.currentTimeMillis()
-            val usageStats = usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY,currentTime - HOUR_RANGE, currentTime)
-            if(usageStats != null) {
+            val usageStats = usageStatsManager.queryUsageStats(
+                UsageStatsManager.INTERVAL_DAILY,
+                currentTime - HOUR_RANGE,
+                currentTime
+            )
+            if (usageStats != null) {
                 val sortedMap = TreeMap<Long, UsageStats>()
-                for(usageStat in usageStats) {
-                    val time : Long = usageStat.lastTimeUsed
+                for (usageStat in usageStats) {
+                    val time: Long = usageStat.lastTimeUsed
                     sortedMap.put(time, usageStat)
                 }
-                if(sortedMap.isNotEmpty()) {
+                if (sortedMap.isNotEmpty()) {
                     val lastKey = sortedMap.lastKey()
                     val foregroundAppUsageStats = sortedMap.get(lastKey)
-                    if(foregroundAppUsageStats != null) {
-                        val applicationName = context.packageManager.getApplicationLabel(context.packageManager.getApplicationInfo(foregroundAppUsageStats.packageName, 0)).toString()
-                        if(applicationName != null) {
+                    if (foregroundAppUsageStats != null) {
+                        val applicationName = context.packageManager.getApplicationLabel(
+                            context.packageManager.getApplicationInfo(
+                                foregroundAppUsageStats.packageName,
+                                0
+                            )
+                        ).toString()
+                        if (applicationName != null) {
                             return applicationName
                         }
                     }
@@ -82,8 +98,8 @@ class ApplicationFetcher {
          * This is just a service method that is used to indicate whether the given application is an System Installed
          * Application or a User Installed Application.
          */
-        private fun isSystemApplication(applicationInfo: ApplicationInfo) :Boolean {
-            if((applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0)
+        private fun isSystemApplication(applicationInfo: ApplicationInfo): Boolean {
+            if ((applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0)
                 return true
             return false
         }

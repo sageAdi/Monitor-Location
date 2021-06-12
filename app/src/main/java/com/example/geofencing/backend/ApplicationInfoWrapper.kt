@@ -12,7 +12,7 @@ class ApplicationInfoWrapper {
     /*******************************************************************************************************************
     CONSTRUCTORS
      ******************************************************************************************************************/
-    public constructor(applicationName: String, applicationIcon: Drawable) {
+    constructor(applicationName: String, applicationIcon: Drawable) {
         this.applicationIcon = applicationIcon
         this.applicationName = applicationName
     }
@@ -20,16 +20,19 @@ class ApplicationInfoWrapper {
     /*******************************************************************************************************************
     GETTERS AND SETTERS
      ******************************************************************************************************************/
-    public fun getApplicationName() : String {
+    fun getApplicationName(): String {
         return this.applicationName
     }
-    public fun getApplicationIcon() : Drawable {
+
+    fun getApplicationIcon(): Drawable {
         return this.applicationIcon
     }
-    public fun setApplicationName(applicationName: String) {
+
+    fun setApplicationName(applicationName: String) {
         this.applicationName = applicationName
     }
-    public fun setApplicationIcon(applicationIcon: Drawable) {
+
+    fun setApplicationIcon(applicationIcon: Drawable) {
         this.applicationIcon = applicationIcon
     }
 }
