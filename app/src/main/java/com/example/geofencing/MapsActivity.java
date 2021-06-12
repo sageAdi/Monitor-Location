@@ -2,12 +2,9 @@ package com.example.geofencing;
 
 import android.Manifest;
 import android.app.PendingIntent;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.net.Uri;
 import android.os.Build;
@@ -15,7 +12,6 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -45,10 +41,10 @@ import com.google.android.gms.tasks.OnSuccessListener;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
+    public final static int REQUEST_CODE = 300;
     private static final String TAG = "MapsActivity";
     private final int FINE_LOCATION_ACCESS_REQUEST_CODE = 1001;
     private final int REQUEST_PERMISSION_ACCESS_BACKGROUND_LOCATION = 99;
-
     private GoogleMap mMap;
     private GeofenceHelper geofenceHelper;
     private ActivityMapsBinding binding;
@@ -58,8 +54,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GeofencingClient geofencingClient;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private String GEOFENCE_ID = "GEOFENCE_ID";
-
-    public final static int REQUEST_CODE = 300;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,35 +81,54 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         enableForegroundLocation();
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Log.v("App", "Build Version Greater than or equal to M: " + Build.VERSION_CODES.M);
             checkDrawOverlayPermission();
         }
-        handleGeofence();
+        if (Build.VERSION.SDK_INT >= 29) {
+            enableBackgroundLocation();
+        }else{
+            handleGeofence();
+        }
+
     }
+
+    private void enableBackgroundLocation() {
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            handleGeofence();
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION},
+                    REQUEST_PERMISSION_ACCESS_BACKGROUND_LOCATION);
+        }
+    }
+
     private void overlayLayout() {
         try {
-            Log.v("App", "Disable Pull Notification");
 
-            int statusBarHeight = (int) Math.ceil(25 * getResources().getDisplayMetrics().density);
-            Log.v("App", "" + statusBarHeight);
-
+            //int statusBarHeight = (int) Math.ceil(25 * getResources().getDisplayMetrics()
+            // .density);
             WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                     WindowManager.LayoutParams.MATCH_PARENT,
                     WindowManager.LayoutParams.MATCH_PARENT,
                     WindowManager.LayoutParams.TYPE_APPLICATION,
                     WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
                             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN, //Disables status bar
-                    PixelFormat.TRANSPARENT); //Transparent
+                    PixelFormat.TRANSLUCENT); //Transparent
 
             params.gravity = Gravity.CENTER | Gravity.TOP;
             WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
-            ViewGroup viewGroup = (ViewGroup) getLayoutInflater().inflate(R.layout.overlay_screen,null);
+            ViewGroup viewGroup = (ViewGroup) getLayoutInflater().inflate(R.layout.overlay_screen
+                    , null);
             wm.addView(viewGroup, params);
             Button btn = findViewById(R.id.exitBtn);
             btn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+
+                    Log.d(TAG, "onClick: Exit button clicked");
                     wm.removeViewImmediate(viewGroup);
                 }
             });
@@ -138,7 +151,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                     Uri.parse("package:" + getApplicationContext().getPackageName()));
             // request permission via start activity for result
-            startActivityForResult(intent, REQUEST_CODE); //It will call onActivityResult Function After you press Yes/No and go Back after giving permission
+            startActivityForResult(intent, REQUEST_CODE); //It will call onActivityResult 
+            // Function After you press Yes/No and go Back after giving permission
         } else {
             Log.v("App", "We already have permission for it.");
             overlayLayout();
@@ -209,6 +223,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // We have the permission
                 Log.d(TAG, "onRequestPermissionsResult: Permission granted");
+                handleGeofence();
             } else {
                 Log.d(TAG, "onRequestPermissionsResult: Permission not granted");
             }
@@ -220,16 +235,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 == PackageManager.PERMISSION_GRANTED) {
             mMap.setMyLocationEnabled(true);
 
-        }
-         else {
+        } else {
             // Ask for Permission
             if (!ActivityCompat.shouldShowRequestPermissionRationale(this,
                     Manifest.permission.ACCESS_FINE_LOCATION)) {
             } else {
-        ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                FINE_LOCATION_ACCESS_REQUEST_CODE);
-    }
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        FINE_LOCATION_ACCESS_REQUEST_CODE);
+            }
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     FINE_LOCATION_ACCESS_REQUEST_CODE);
