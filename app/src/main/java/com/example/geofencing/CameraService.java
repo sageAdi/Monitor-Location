@@ -1,3 +1,4 @@
+/*
 package com.example.geofencing;
 
 import android.Manifest;
@@ -108,9 +109,11 @@ public class CameraService extends Service {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                 return;
             }
-            manager.openCamera(pickedCamera, stateCallback, null);
-            imageReader = ImageReader.newInstance(1920, 1088, ImageFormat.JPEG, 2 /* images
-            buffered */);
+            //manager.openCamera(pickedCamera, stateCallback, null);
+            imageReader = ImageReader.newInstance(1920, 1088, ImageFormat.JPEG, 2 */
+/* images
+            buffered *//*
+);
             imageReader.setOnImageAvailableListener(onImageAvailableListener, null);
             Log.d(TAG, "imageReader created");
         } catch (CameraAccessException e) {
@@ -241,4 +244,4 @@ public class CameraService extends Service {
             return null;
         }
     }
-}
+}*/

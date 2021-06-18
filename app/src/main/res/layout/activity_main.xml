@@ -12,118 +12,58 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/logo"
+            app:layout_constraintBottom_toTopOf="@+id/welcomeText"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:src="@drawable/ic_privacy"
+            android:contentDescription="@string/LogoDescription" />
+
         <TextView
             android:id="@+id/welcomeText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/Welcome"
             android:textAlignment="center"
-            android:textSize="24dp"
-            android:textStyle="bold"
             android:textColor="@color/black"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/latitudeTextLayout"/>
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/latitudeTextLayout"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginTop="50dp"
-            android:layout_marginEnd="10dp"
-            android:layout_marginRight="10dp"
-            android:layout_marginBottom="10dp"
-            android:autofillHints="@string/Latitude"
-            android:ems="10"
-            android:hint="@string/Latitude"
-            android:padding="8dp"
-            app:helperText="@string/Required"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:layout_constraintBottom_toTopOf="@+id/longitudeTextLayout"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
+            android:textSize="24sp"
+            android:textStyle="bold"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintStart_toStartOf="@+id/welcomeText"
-            app:layout_constraintTop_toTopOf="@+id/welcomeText">
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/descriptionText"
+            app:layout_constraintEnd_toStartOf="@+id/descriptionText"
+            app:layout_constraintStart_toEndOf="@+id/logo"
+            app:layout_constraintTop_toBottomOf="@+id/logo" />
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/latitudeText"
-                android:maxLines="1"
-                android:singleLine="true"
-                android:inputType="numberDecimal"/>
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/longitudeTextLayout"
-            android:layout_width="0dp"
+        <TextView
+            android:id="@+id/descriptionText"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginEnd="10dp"
-            android:layout_marginRight="10dp"
-            android:layout_marginBottom="10dp"
-            android:autofillHints="@string/Longitude"
-            android:ems="10"
-            android:hint="@string/Longitude"
-            android:padding="8dp"
-            app:helperText="@string/Required"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:layout_constraintBottom_toTopOf="@+id/radiusTextLayout"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/latitudeTextLayout">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/longitudeText"
-                android:maxLines="1"
-                android:singleLine="true"
-                android:inputType="numberDecimal"/>
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/radiusTextLayout"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginEnd="10dp"
-            android:layout_marginRight="10dp"
-            android:layout_marginBottom="10dp"
-            android:padding="8dp"
-            android:autofillHints="@string/Radius"
-            android:ems="10"
-            android:hint="@string/Radius"
-            app:helperText="@string/Required"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:text="@string/Description"
+            android:textAlignment="center"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintBottom_toTopOf="@+id/startBtn"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/longitudeTextLayout">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/radiusText"
-                android:maxLines="1"
-                android:singleLine="true"
-                android:inputType="numberDecimal"/>
-        </com.google.android.material.textfield.TextInputLayout>
+            app:layout_constraintEnd_toStartOf="@+id/startBtn"
+            app:layout_constraintStart_toEndOf="@+id/welcomeText"
+            app:layout_constraintTop_toBottomOf="@id/welcomeText" />
 
         <Button
             android:id="@+id/startBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/Start"
             android:enabled="true"
+            android:text="@string/Start"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.498"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/radiusTextLayout" />
+            app:layout_constraintTop_toBottomOf="@+id/descriptionText" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </ScrollView>

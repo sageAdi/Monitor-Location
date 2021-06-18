@@ -2,20 +2,11 @@ package com.example.geofencing;
 
 import android.Manifest;
 import android.app.PendingIntent;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.PixelFormat;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -25,7 +16,6 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import com.example.geofencing.databinding.ActivityMapsBinding;
-import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
 import com.google.android.gms.location.GeofencingRequest;
@@ -36,24 +26,16 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
-    public final static int REQUEST_CODE = 300;
     private static final String TAG = "MapsActivity";
     private final int FINE_LOCATION_ACCESS_REQUEST_CODE = 1001;
     private final int REQUEST_PERMISSION_ACCESS_BACKGROUND_LOCATION = 99;
+    ActivityMapsBinding binding;
     private GoogleMap mMap;
     private GeofenceHelper geofenceHelper;
-    private ActivityMapsBinding binding;
-    //private Double latitude = 26.6940, longitude = 83.4826;
-    private Double latitude = 22.532682, longitude = 70.052806;
-    private float radius = 500;
     private GeofencingClient geofencingClient;
-    private FusedLocationProviderClient fusedLocationProviderClient;
-    private String GEOFENCE_ID = "GEOFENCE_ID";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,15 +45,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(binding.getRoot());
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
+        SupportMapFragment mapFragment =
+                (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        assert mapFragment != null;
         mapFragment.getMapAsync(this);
-
-        Bundle bundle = getIntent().getExtras();
-        // TODO: Uncomment this before final push
-        /*latitude = Double.parseDouble(bundle.getString("latitude").trim());
-        longitude = Double.parseDouble(bundle.getString("longitude").trim());
-        radius = Float.parseFloat(bundle.getString("radius").trim());*/
 
         geofencingClient = LocationServices.getGeofencingClient(this);
         geofenceHelper = new GeofenceHelper(this);
@@ -82,18 +59,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
         enableForegroundLocation();
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Log.v("App", "Build Version Greater than or equal to M: " + Build.VERSION_CODES.M);
-            checkDrawOverlayPermission();
-        }
         if (Build.VERSION.SDK_INT >= 29) {
             enableBackgroundLocation();
-        }else{
+        } else {
             handleGeofence();
         }
 
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     private void enableBackgroundLocation() {
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -105,63 +79,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    private void overlayLayout() {
-        try {
-
-            //int statusBarHeight = (int) Math.ceil(25 * getResources().getDisplayMetrics()
-            // .density);
-            WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                    WindowManager.LayoutParams.MATCH_PARENT,
-                    WindowManager.LayoutParams.MATCH_PARENT,
-                    WindowManager.LayoutParams.TYPE_APPLICATION,
-                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
-                            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN, //Disables status bar
-                    PixelFormat.TRANSLUCENT); //Transparent
-
-            params.gravity = Gravity.CENTER | Gravity.TOP;
-            WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
-            ViewGroup viewGroup = (ViewGroup) getLayoutInflater().inflate(R.layout.overlay_screen
-                    , null);
-            wm.addView(viewGroup, params);
-            Button btn = findViewById(R.id.exitBtn);
-            btn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-
-                    Log.d(TAG, "onClick: Exit button clicked");
-                    wm.removeViewImmediate(viewGroup);
-                }
-            });
-
-
-        } catch (Exception e) {
-            Log.v("App", "Exception: " + e.getMessage());
-
-        }
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    public void checkDrawOverlayPermission() {
-        Log.v("App", "Package Name: " + getApplicationContext().getPackageName());
-
-        // Check if we already  have permission to draw over other apps
-        if (!Settings.canDrawOverlays(this)) {
-            Log.v("App", "Requesting Permission" + Settings.canDrawOverlays(this));
-            // if not construct intent to request permission
-            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:" + getApplicationContext().getPackageName()));
-            // request permission via start activity for result
-            startActivityForResult(intent, REQUEST_CODE); //It will call onActivityResult 
-            // Function After you press Yes/No and go Back after giving permission
-        } else {
-            Log.v("App", "We already have permission for it.");
-            overlayLayout();
-            // disablePullNotificationTouch();
-            // Do your stuff, we got permission captain
-        }
-    }
-
     private void handleGeofence() {
+        double latitude = 26.6940;
+        double longitude = 83.4826;
+        /*double latitude = 26.927806;
+        double longitude = 80.922944;*/
+        float radius = 500;
+        // Client
+        /*double latitude = 22.532675;
+        double longitude = 70.052831;*/
         LatLng latLng = new LatLng(latitude, longitude);
         CircleOptions circleOptions = new CircleOptions();
         circleOptions.center(latLng);
@@ -171,10 +97,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         circleOptions.strokeWidth(4);
         mMap.addCircle(circleOptions);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+        Log.d(TAG, "handleGeofence: inside");
         addGeofence(latLng, radius);
     }
 
     public void addGeofence(LatLng latLng, float radius) {
+        Log.d(TAG, "addGeofence: inside");
+        // Geofence ID to distinguish between different geofence.
+        String GEOFENCE_ID = "GEOFENCE_ID";
         Geofence geofence = geofenceHelper.getGeofence(GEOFENCE_ID, latLng, radius,
                 Geofence.GEOFENCE_TRANSITION_ENTER
                         | Geofence.GEOFENCE_TRANSITION_DWELL
@@ -188,20 +118,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     FINE_LOCATION_ACCESS_REQUEST_CODE);
         }
         geofencingClient.addGeofences(geofencingRequest, pendingIntent)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void unused) {
-                        Toast.makeText(geofenceHelper, "Geofence Added Successfully",
-                                Toast.LENGTH_SHORT).show();
-                        Log.d(TAG, "onSuccess: Geofence Added");
-                    }
+                .addOnSuccessListener(unused -> {
+                    Toast.makeText(geofenceHelper, "Geofence Added Successfully",
+                            Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "onSuccess: Geofence Added");
                 })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        String errorMessage = geofenceHelper.getErrorMessage(e);
-                        Log.d(TAG, "onFailure: " + errorMessage);
-                    }
+                .addOnFailureListener(e -> {
+                    String errorMessage = geofenceHelper.getErrorMessage(e);
+                    Log.d(TAG, "onFailure: " + errorMessage);
                 });
     }
 
@@ -218,14 +142,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Log.d(TAG, "onRequestPermissionsResult: Permission not granted");
             }
         }
-        if (requestCode == REQUEST_PERMISSION_ACCESS_BACKGROUND_LOCATION) {
-            Log.d(TAG, "onRequestPermissionsResult: ACCESS_BACKGROUND_LOCATION");
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // We have the permission
-                Log.d(TAG, "onRequestPermissionsResult: Permission granted");
-                handleGeofence();
-            } else {
-                Log.d(TAG, "onRequestPermissionsResult: Permission not granted");
+        if (Build.VERSION.SDK_INT >= 29) {
+            if (requestCode == REQUEST_PERMISSION_ACCESS_BACKGROUND_LOCATION) {
+                Log.d(TAG, "onRequestPermissionsResult: ACCESS_BACKGROUND_LOCATION");
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // We have the permission
+                    Log.d(TAG, "onRequestPermissionsResult: Permission granted");
+                    handleGeofence();
+                } else {
+                    Log.d(TAG, "onRequestPermissionsResult: Permission not granted");
+                }
             }
         }
     }
@@ -237,16 +163,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         } else {
             // Ask for Permission
-            if (!ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION)) {
-            } else {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                        FINE_LOCATION_ACCESS_REQUEST_CODE);
-            }
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     FINE_LOCATION_ACCESS_REQUEST_CODE);
+
             //mMap.setMyLocationEnabled(true);
         }
     }
