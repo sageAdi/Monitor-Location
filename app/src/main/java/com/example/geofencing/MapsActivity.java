@@ -1,11 +1,15 @@
 package com.example.geofencing;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.PendingIntent;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -29,6 +33,7 @@ import com.google.android.gms.maps.model.LatLng;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
+    public final static int REQUEST_CODE = 200;
     private static final String TAG = "MapsActivity";
     private final int FINE_LOCATION_ACCESS_REQUEST_CODE = 1001;
     private final int REQUEST_PERMISSION_ACCESS_BACKGROUND_LOCATION = 99;
@@ -61,6 +66,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         if (Build.VERSION.SDK_INT >= 29) {
             enableBackgroundLocation();
+            checkDrawOverlayPermission();
         } else {
             handleGeofence();
         }
@@ -82,12 +88,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void handleGeofence() {
         double latitude = 26.6940;
         double longitude = 83.4826;
+        // Amritesh
         /*double latitude = 26.927806;
         double longitude = 80.922944;*/
+        /*double latitude = 27.391079;
+        double longitude = 79.582925;*/
         float radius = 500;
         // Client
-        /*double latitude = 22.532675;
-        double longitude = 70.052831;*/
+        /*double latitude = 22.530860;
+        double longitude = 70.044479;*/
         LatLng latLng = new LatLng(latitude, longitude);
         CircleOptions circleOptions = new CircleOptions();
         circleOptions.center(latLng);
@@ -97,7 +106,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         circleOptions.strokeWidth(4);
         mMap.addCircle(circleOptions);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
-        Log.d(TAG, "handleGeofence: inside");
         addGeofence(latLng, radius);
     }
 
@@ -121,7 +129,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .addOnSuccessListener(unused -> {
                     Toast.makeText(geofenceHelper, "Geofence Added Successfully",
                             Toast.LENGTH_SHORT).show();
-                    Log.d(TAG, "onSuccess: Geofence Added");
+                    Log.d(TAG, "onSuccess: Geofence Added Successfully");
                 })
                 .addOnFailureListener(e -> {
                     String errorMessage = geofenceHelper.getErrorMessage(e);
@@ -156,6 +164,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public void checkDrawOverlayPermission() {
+        Log.v("App", "Package Name: " + getApplicationContext().getPackageName());
+
+        // check if we already  have permission to draw over other apps
+        if (!Settings.canDrawOverlays(this)) {
+            Log.v("App", "Requesting Permission" + Settings.canDrawOverlays(this));
+            // if not construct intent to request permission
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + getApplicationContext().getPackageName()));
+            // request permission via start activity for result
+            startActivityForResult(intent, REQUEST_CODE);
+        } else {
+            Log.v("App", "We already have permission for it.");
+
+        }
+    }
+
     private void enableForegroundLocation() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -168,6 +194,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     FINE_LOCATION_ACCESS_REQUEST_CODE);
 
             //mMap.setMyLocationEnabled(true);
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Log.v("App", "OnActivity Result.");
+        //check if received result code
+        //  is equal our requested code for draw permission
+        if (requestCode == REQUEST_CODE) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (Settings.canDrawOverlays(this)) {
+                    //disablePullNotificationTouch();
+                }
+            }
         }
     }
 }

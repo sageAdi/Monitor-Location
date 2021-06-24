@@ -13,7 +13,7 @@ public class BlockScreenReceiver extends BroadcastReceiver {
         // an Intent broadcast.
         // throw new UnsupportedOperationException("Not yet implemented");
         if (intent.getAction() == "com.example.geofencing.ActiveApps"){
-            context.startActivity(new Intent(context.getApplicationContext(), SplashScreen.class));
+            context.startActivity(new Intent(context, SplashScreen.class));
             Log.d(TAG, "onReceive: inside Blocked receiver");
         }
     }
